@@ -1,6 +1,7 @@
 #define ID 1
 #define HAS_MIDI false
-#define HAS_MPU6050 true
+#define HAS_MPU6050 false
+#define HAS_VL53L true
 
 #define LOCAL_OSC_PORT 8000
 #define REMOTE_OSC_PORT 8088

@@ -1,4 +1,5 @@
 #include "config.h"
+#include <Wire.h>
 #include <WiFi.h>
 #if HAS_MIDI
 #include <Adafruit_TinyUSB.h>
@@ -6,16 +7,19 @@
 #endif
 #include <OSCMessage.h>
 
+#if HAS_VL53L
+#include "Adafruit_VL53L0X.h"
+Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+#endif
+
 
 #if HAS_MPU6050
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
-#include <Wire.h>
 
 Adafruit_MPU6050 mpu;
+sensors_event_t a, g, temp;
 #endif
-
-
 
 
 #if HAS_MIDI
@@ -29,20 +33,25 @@ WiFiUDP Udp;
 const IPAddress outIp(255, 255, 255, 255);
 
 int touchValues[NUMBER_OF_TOUCHES];
-sensors_event_t a, g, temp;
 
 long _timestamp;
 long _frameCounter = 0;
+int _distance;
 
 void readSensors () {
   for (auto i = 0; i < NUMBER_OF_TOUCHES; i++) {
     touchValues[i] = touchRead(touchPins[i]);
-    Serial.println(touchValues[i]);
   }
 
+#if HAS_MPU6050
   mpu.getEvent(&a, &g, &temp);
-
-  Serial.println(g.gyro.x);
+#endif
+#if HAS_VL53L
+  if (lox.isRangeComplete()) {
+    _distance = lox.readRange();
+    Serial.println(_distance);
+  }
+#endif
 
 }
 
@@ -57,6 +66,7 @@ void sendValues() {
   Udp.endPacket();
   touchMsg.empty();
 
+#if HAS_MPU6050
   OSCMessage accelerometerMsg("/esp/motion");
   accelerometerMsg.add(ID);
   accelerometerMsg.add(g.gyro.x);
@@ -78,7 +88,18 @@ void sendValues() {
   temperatureMsg.send(Udp);
   Udp.endPacket();
   temperatureMsg.empty();
+#endif
 
+#if HAS_VL53L
+  OSCMessage distanceMessage("/esp/distance");
+  distanceMessage.add(ID);
+  distanceMessage.add(_distance);
+
+  Udp.beginPacket(outIp, REMOTE_OSC_PORT);
+  distanceMessage.send(Udp);
+  Udp.endPacket();
+  distanceMessage.empty();
+#endif
 
 #if HAS_MIDI
   usbMIDI.sendControlChange(1, 1, ID);
@@ -102,6 +123,7 @@ void setup() {
   usbMIDI.begin();
 #endif
 
+#if HAS_MPU6050
   // Try to initialize!
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
@@ -168,6 +190,16 @@ void setup() {
       Serial.println("5 Hz");
       break;
   }
+#endif
+
+#if HAS_VL53L
+  if (!lox.begin()) {
+    Serial.println(F("Failed to boot VL53L0X"));
+    while (1);
+  }
+  lox.startRangeContinuous();
+
+#endif
 
   Serial.println("");
   delay(100);
