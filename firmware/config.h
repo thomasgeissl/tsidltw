@@ -1,6 +1,6 @@
 #define ID 1
 #define HAS_MIDI false
-#define HAS_MPU6050 false
+#define HAS_MPU6050 true
 #define HAS_VL53L true
 
 #define LOCAL_OSC_PORT 8000
@@ -9,3 +9,12 @@
 #define NUMBER_OF_TOUCHES 2
 //int touchPins[NUMBER_OF_TOUCHES] = {4, 2, 15, 32, 33, 27, 14, 12, 13};
 int touchPins[NUMBER_OF_TOUCHES] = {13,15};
+#define MAX_NUMBER_OF_TRIES 10
+
+#define AP_SSID "nantlab-wlan"
+#define AP_PASSWORD "nantlab-wlan-pw"
+
+#define NETWORK_SSID "nantlab-wlan"
+#define PASSWORD "nantlab-wlan-pw"
+#define NETWORK_SSID "TODO"
+#define PASSWORD "TODO"

@@ -27,8 +27,9 @@ Adafruit_USBD_MIDI usb_midi;
 MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 #endif
 
-const char *Apssid = "nantlab-wlan";
-const char *Appassword = "nantlab-wlan-pw";
+//const char *Apssid = AP_SSID;
+//const char *Appassword = AP_PASS;
+
 WiFiUDP Udp;
 const IPAddress outIp(255, 255, 255, 255);
 
@@ -49,7 +50,6 @@ void readSensors () {
 #if HAS_VL53L
   if (lox.isRangeComplete()) {
     _distance = lox.readRange();
-    Serial.println(_distance);
   }
 #endif
 
@@ -111,12 +111,27 @@ void sendValues() {
 
 void setup() {
   Serial.begin(115200);
-  WiFi.mode(WIFI_AP_STA);
 
-  WiFi.softAP(Apssid, Appassword);
-  IPAddress myIP = WiFi.softAPIP();
-  Serial.print("Access Point IP address: ");
-  Serial.println(myIP);
+  WiFi.mode(WIFI_STA); //Optional
+  WiFi.begin(NETWORK_SSID, PASSWORD);
+  Serial.println("\nConnecting");
+
+  auto numberOfTries = 0;
+  while (WiFi.status() != WL_CONNECTED && numberOfTries < MAX_NUMBER_OF_TRIES) {
+    Serial.print(".");
+    delay(100);
+    numberOfTries++;
+  }
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println(WiFi.localIP());
+  } else {
+    WiFi.mode(WIFI_AP_STA);
+    WiFi.softAP(AP_SSID, AP_PASSWORD);
+    IPAddress myIP = WiFi.softAPIP();
+    Serial.print("Access Point IP address: ");
+    Serial.println(myIP);
+  }
+
   Udp.begin(LOCAL_OSC_PORT);
 
 #if HAS_MIDI
