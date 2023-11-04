@@ -35,7 +35,7 @@ const IPAddress outIp(255, 255, 255, 255);
 
 int touchValues[NUMBER_OF_TOUCHES];
 
-long _timestamp;
+long _lastSendTimestamp;
 long _frameCounter = 0;
 int _distance;
 
@@ -56,6 +56,10 @@ void readSensors () {
 }
 
 void sendValues() {
+  auto timestamp = millis();
+//  if(timestamp < _lastSendTimestamp + SEND_INTERVAL_MS){
+//    return;
+//  }
   OSCMessage touchMsg("/esp/touch");
   touchMsg.add(ID);
   for (auto i = 0; i < NUMBER_OF_TOUCHES; i++) {
@@ -107,6 +111,8 @@ void sendValues() {
   delay(50);
   usbMIDI.sendNoteOff(60, 0, ID);
 #endif
+
+  _lastSendTimestamp = millis();
 }
 
 void setup() {

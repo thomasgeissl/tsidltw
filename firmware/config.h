@@ -9,6 +9,9 @@
 #define NUMBER_OF_TOUCHES 2
 //int touchPins[NUMBER_OF_TOUCHES] = {4, 2, 15, 32, 33, 27, 14, 12, 13};
 int touchPins[NUMBER_OF_TOUCHES] = {13,15};
+
+#define SEND_INTERVAL_MS 10
+
 #define MAX_NUMBER_OF_TRIES 10
 
 #define AP_SSID "nantlab-wlan"
