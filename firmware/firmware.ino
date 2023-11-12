@@ -59,7 +59,7 @@ void readSensors () {
 }
 
 void sendValues() {
-  String addressPrefix = "/esp/" + String(ID);
+  String addressPrefix = "/esp/";// + String(ID);
   auto timestamp = millis();
   if (timestamp < _lastSendTimestamp + SEND_INTERVAL_MS) {
     return;
@@ -94,7 +94,6 @@ void sendValues() {
   accelerometerMsg.empty();
 #if USE_MPU6050_TEMPERATURE
   OSCMessage temperatureMsg(String(addressPrefix + "/temperature").c_str());
-  temperatureMsg.add(ID);
   temperatureMsg.add(temp.temperature);
 
   Udp.beginPacket(outIp, REMOTE_OSC_PORT);
@@ -105,7 +104,7 @@ void sendValues() {
 #endif //mpu6050
 
 #if HAS_VL53L
-  OSCMessage touchMsg(String(addressPrefix + "/distance").c_str());
+  OSCMessage distanceMessage(String(addressPrefix + "/distance").c_str());
   distanceMessage.add(ID);
   distanceMessage.add(_distance);
 
