@@ -1,10 +1,19 @@
 #include "config.h"
 #include <Wire.h>
 #include <WiFi.h>
+
 #if HAS_MIDI
 #include <Adafruit_TinyUSB.h>
 #include <MIDI.h>
+Adafruit_USBD_MIDI usb_midi;
+MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
 #endif
+
+#if HAS_RTP_MIDI
+#include <AppleMIDI.h>
+APPLEMIDI_CREATE_DEFAULTSESSION_INSTANCE();
+#endif
+
 #include <OSCMessage.h>
 
 #if HAS_VL53L
@@ -21,11 +30,6 @@ Adafruit_MPU6050 mpu;
 sensors_event_t a, g, temp;
 #endif
 
-
-#if HAS_MIDI
-Adafruit_USBD_MIDI usb_midi;
-MIDI_CREATE_INSTANCE(Adafruit_USBD_MIDI, usb_midi, usbMIDI);
-#endif
 
 //const char *Apssid = AP_SSID;
 //const char *Appassword = AP_PASS;
@@ -52,26 +56,31 @@ void readSensors () {
     _distance = lox.readRange();
   }
 #endif
-
 }
 
 void sendValues() {
+  String addressPrefix = "/esp/" + String(ID);
   auto timestamp = millis();
-//  if(timestamp < _lastSendTimestamp + SEND_INTERVAL_MS){
-//    return;
-//  }
-  OSCMessage touchMsg("/esp/touch");
+  if (timestamp < _lastSendTimestamp + SEND_INTERVAL_MS) {
+    return;
+  }
+  OSCMessage touchMsg(String(addressPrefix + "/touch").c_str());
   touchMsg.add(ID);
   for (auto i = 0; i < NUMBER_OF_TOUCHES; i++) {
     touchMsg.add(touchValues[i]);
+#if HAS_RTP_MIDI
+    MIDI.sendNoteOn(i, touchValues[i], ID);
+#endif
+    //TODO: do we need to send a note off?
   }
   Udp.beginPacket(outIp, REMOTE_OSC_PORT);
   touchMsg.send(Udp);
   Udp.endPacket();
   touchMsg.empty();
 
+
 #if HAS_MPU6050
-  OSCMessage accelerometerMsg("/esp/motion");
+  OSCMessage accelerometerMsg(String(addressPrefix + "/motion").c_str());
   accelerometerMsg.add(ID);
   accelerometerMsg.add(g.gyro.x);
   accelerometerMsg.add(g.gyro.y);
@@ -83,8 +92,8 @@ void sendValues() {
   accelerometerMsg.send(Udp);
   Udp.endPacket();
   accelerometerMsg.empty();
-
-  OSCMessage temperatureMsg("/esp/temperature");
+#if USE_MPU6050_TEMPERATURE
+  OSCMessage temperatureMsg(String(addressPrefix + "/temperature").c_str());
   temperatureMsg.add(ID);
   temperatureMsg.add(temp.temperature);
 
@@ -92,10 +101,11 @@ void sendValues() {
   temperatureMsg.send(Udp);
   Udp.endPacket();
   temperatureMsg.empty();
-#endif
+#endif //temperature
+#endif //mpu6050
 
 #if HAS_VL53L
-  OSCMessage distanceMessage("/esp/distance");
+  OSCMessage touchMsg(String(addressPrefix + "/distance").c_str());
   distanceMessage.add(ID);
   distanceMessage.add(_distance);
 
@@ -142,6 +152,10 @@ void setup() {
 
 #if HAS_MIDI
   usbMIDI.begin();
+#endif
+
+#if HAS_RTP_MIDI
+  MIDI.begin();
 #endif
 
 #if HAS_MPU6050
@@ -218,7 +232,7 @@ void setup() {
     Serial.println(F("Failed to boot VL53L0X"));
     while (1);
   }
-  lox.startRangeContinuous();
+  lox.startRangeContinuous(); sen
 
 #endif
 
@@ -229,8 +243,14 @@ void setup() {
 void loop() {
   auto timestamp = millis();
   _frameCounter++;
+
+#if HAS_MIDI
+  usbMIDI.read();
+#endif
+
+#if HAS_RTP_MIDI
+  MIDI.read();
+#endif
   readSensors();
-  if (_frameCounter % 2 == 0) {
-    sendValues();
-  }
+  sendValues();
 }
