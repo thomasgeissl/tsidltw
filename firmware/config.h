@@ -5,7 +5,7 @@
 #define USE_MPU6050_TEMPERATURE false
 #define HAS_VL53L false
 
-#define HAS_FLEX_SENSOR true
+#define HAS_FLEX_SENSOR false
 #define NUMBER_OF_FLEX_SENSORS 2
 #define FLEX_PIN 34
 int flexPins[NUMBER_OF_FLEX_SENSORS] = {34, 39};
