@@ -59,7 +59,7 @@ void readSensors () {
 }
 
 void sendValues() {
-  String addressPrefix = "/esp/";// + String(ID);
+  String addressPrefix = "/esp";// + String(ID);
   auto timestamp = millis();
   if (timestamp < _lastSendTimestamp + SEND_INTERVAL_MS) {
     return;
@@ -107,6 +107,19 @@ void sendValues() {
   OSCMessage distanceMessage(String(addressPrefix + "/distance").c_str());
   distanceMessage.add(ID);
   distanceMessage.add(_distance);
+
+  Udp.beginPacket(outIp, REMOTE_OSC_PORT);
+  distanceMessage.send(Udp);
+  Udp.endPacket();
+  distanceMessage.empty();
+#endif
+
+#if HAS_FLEX_SENSOR
+ OSCMessage distanceMessage(String(addressPrefix + "/flex").c_str());
+  distanceMessage.add(ID);
+  for(auto i = 0; i < NUMBER_OF_FLEX_SENSORS; i++){
+      distanceMessage.add(analogRead(flexPins[i]));
+  }
 
   Udp.beginPacket(outIp, REMOTE_OSC_PORT);
   distanceMessage.send(Udp);
@@ -231,7 +244,7 @@ void setup() {
     Serial.println(F("Failed to boot VL53L0X"));
     while (1);
   }
-  lox.startRangeContinuous(); sen
+  lox.startRangeContinuous();
 
 #endif
 
