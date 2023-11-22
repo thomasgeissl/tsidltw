@@ -83,7 +83,7 @@
 #X obj 1039 652 bng 19 250 50 0 empty empty empty 0 -10 0 12 #fcfcfc #000000 #000000;
 #X obj 1120 651 bng 19 250 50 0 empty empty empty 0 -10 0 12 #fcfcfc #000000 #000000;
 #X obj 1039 525 r touch1;
-#X text 25 901 the CC addresses were chosen from less assigned range;
+#X text 25 901 the CC addresses were chosen from less assigned range, f 29;
 #X obj 810 619 touchNote 60 120;
 #X obj 927 297 touchNote 60 120, f 28;
 #X obj 927 186 holdNote 60, f 28;
@@ -126,6 +126,7 @@
 #X text 924 208 Inlets: Value \, Trigger settings \, Note \, Channel;
 #X text 924 318 Inlets: Value \, Trigger settings \, Note duration \, Channel;
 #X text 926 96 Inlets: Value \, Exponent \, Slew(ms) \, CC \, Channel \, Activate;
+#X text 464 146 1st and 3rd argument are off and on values \, the other two are debounce to prevent double taps, f 29;
 #X connect 0 0 1 0;
 #X connect 1 0 3 0;
 #X connect 2 0 0 0;
