@@ -13,9 +13,11 @@ import netP5.*;
 OscP5 oscP5;
 NetAddress myRemoteLocation;
 NetAddress myLocalLocation;
+NetAddress pdLocation;
 String IP = "127.0.0.1";
 int Port = 1234;
 int Port2 = 12000;
+int pdPort = 13579;
 
 // import the TUIO library
 import TUIO.*;
@@ -58,6 +60,7 @@ void setup()
   oscP5 = new OscP5(this, Port2);
   myRemoteLocation = new NetAddress(IP, Port);
   myLocalLocation = new NetAddress(IP, Port2);
+  pdLocation = new NetAddress(IP, pdPort);
 }
 
 // within the draw method we retrieve an ArrayList of type <TuioObject>, <TuioCursor> or <TuioBlob>
@@ -97,6 +100,7 @@ void draw()
       myMessage.add(Velocity);
       oscP5.send(myMessage, myRemoteLocation);
       oscP5.send(myMessage, myLocalLocation);
+      oscP5.send(myMessage, pdLocation);
     }
   }
 
