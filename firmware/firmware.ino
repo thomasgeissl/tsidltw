@@ -114,17 +114,17 @@ void sendValues() {
   distanceMessage.empty();
 #endif
 
-#if HAS_FLEX_SENSOR
- OSCMessage distanceMessage(String(addressPrefix + "/flex").c_str());
-  distanceMessage.add(ID);
-  for(auto i = 0; i < NUMBER_OF_FLEX_SENSORS; i++){
-      distanceMessage.add(analogRead(flexPins[i]));
+#if HAS_ANALOG_INPUTS
+  OSCMessage analogInputMessage(String(addressPrefix + "/analog").c_str());
+  analogInputMessage.add(ID);
+  for (auto i = 0; i < NUMBER_OF_ANALOG_INPUTS; i++) {
+    analogInputMessage.add(analogRead(analogInputPins[i]));
   }
 
   Udp.beginPacket(outIp, REMOTE_OSC_PORT);
-  distanceMessage.send(Udp);
+  analogInputMessage.send(Udp);
   Udp.endPacket();
-  distanceMessage.empty();
+  analogInputMessage.empty();
 #endif
 
 #if HAS_MIDI
@@ -139,7 +139,7 @@ void sendValues() {
 
 void setup() {
   Serial.begin(115200);
-
+#if HAS_WIFI
   WiFi.mode(WIFI_STA); //Optional
   WiFi.begin(NETWORK_SSID, PASSWORD);
   Serial.println("\nConnecting");
@@ -162,13 +162,16 @@ void setup() {
 
   Udp.begin(LOCAL_OSC_PORT);
 
+#if HAS_RTP_MIDI
+  MIDI.begin();
+#endif // end HAS_RTP_MIDI
+#endif // end HAS_WIFI
+
 #if HAS_MIDI
   usbMIDI.begin();
 #endif
 
-#if HAS_RTP_MIDI
-  MIDI.begin();
-#endif
+
 
 #if HAS_MPU6050
   // Try to initialize!
